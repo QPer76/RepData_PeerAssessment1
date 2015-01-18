@@ -1,25 +1,55 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research 1"
+output: html_document
 ---
 
+**Loading and preprocessing the data**
 
-## Loading and preprocessing the data
+```{r}
+act_data = read.csv("activity.csv", stringsAsFactors = FALSE)
+act_data$date = as.Date(act_data$date)
+```
 
+**What is mean total number of steps taken per day?**
 
+```{r}
+activity_daily = aggregate(steps~date, act_data, sum, na.rm = TRUE)
 
-## What is mean total number of steps taken per day?
+steps_mean = round(mean(activity_daily$steps), 2)
+steps_mean
 
+steps_median = median(activity_daily$steps)
+steps_median
 
+barplot(activity_daily$steps, names.arg = activity_daily$date, xlab = "Date", ylab = "Total steps per day", col = "darkblue")
+```
 
-## What is the average daily activity pattern?
+**What is the average daily activity pattern?**
 
+```{r}
+steps_interval = aggregate(steps ~ interval, act_data, mean)
+plot(steps_interval$interval, steps_interval$steps, type = "l", xlab = "Intervals", ylab = "Number of steps", main = "Average number of steps by interval, across days")
 
+max_interval = steps_interval$interval[which.max(steps_interval$steps)]
+max_interval
+```
 
-## Imputing missing values
+**Imputing missing values**
 
+```{r}
+total_NAs = sum(!complete.cases(act_data))
+total_NAs
 
+act_data = merge(act_data, steps_interval, by = "interval", suffixes = c("", ".y"))
+nas = is.na(act_data$steps)
+act_data$steps[nas] = act_data$steps.y[nas]
+act_data = act_data[, c(1:3)]
 
-## Are there differences in activity patterns between weekdays and weekends?
+steps_imp = aggregate(steps ~ date, act_data, sum)
+barplot(steps_imp$steps, names.arg = steps_imp$date, xlab = "Date", ylab = "Number of steps", col = "orange")
+
+mean(steps_imp$steps)
+median(steps_imp$steps)
+```
+
+**Are there differences in activity patterns between weekdays and weekends?**
